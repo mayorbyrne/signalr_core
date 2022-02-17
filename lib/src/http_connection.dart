@@ -131,6 +131,8 @@ class HttpConnection implements Connection {
 
     onreceive = null;
     onclose = null;
+
+    print('DEBUG: starting http connection');
   }
 
   @override
@@ -308,6 +310,8 @@ class HttpConnection implements Connection {
             'HttpConnection.onclose(${_exception.toString()}) threw error \'${e.toString()}\'.');
       }
     }
+
+    print('DEBUG: finished _stopConnection method on http_connection');
   }
 
   Future<void> _startInternal({@required TransferFormat transferFormat}) async {

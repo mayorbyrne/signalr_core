@@ -356,13 +356,18 @@ class HubConnection {
   }
 
   void _completeClose({Exception exception}) {
+    print("DEBUG: _completeClose started");
+
     if (_connectionStarted) {
       _connectionState = HubConnectionState.disconnected;
       _connectionStarted = false;
 
       try {
+        print("DEBUG: running _closedCallbacks $_closedCallbacks");
+
         for (var callback in _closedCallbacks) {
           callback(exception);
+          print("DEBUG: callback $callback finished");
         }
       } catch (e) {
         _logger(LogLevel.error,
@@ -372,6 +377,9 @@ class HubConnection {
   }
 
   Future<void> _reconnect({Exception exception}) async {
+
+    print("DEBUG: _reconnect. exception: $exception");
+
     final reconnectStartTime = Stopwatch()..start();
     //final reconnectStartTime = DateTime.now();
     var previousReconnectAttempts = 0;
@@ -384,6 +392,8 @@ class HubConnection {
         elapsedMilliseconds: 0,
         retryReason: retryError);
 
+    print("DEBUG: nextRetryDelay created");
+
     if (nextRetryDelay == null) {
       _logger(LogLevel.debug,
           'Connection not reconnecting because the RetryPolicy returned null on the first reconnect attempt.');
@@ -392,6 +402,7 @@ class HubConnection {
     }
 
     _connectionState = HubConnectionState.reconnecting;
+    print("DEBUG: _connectionState set");
 
     if (exception != null) {
       _logger(LogLevel.information,
@@ -402,8 +413,11 @@ class HubConnection {
 
     if (onreconnecting != null) {
       try {
+        print("DEBUG: running _reconnectingCallbacks $_reconnectingCallbacks");
+
         for (var callback in _reconnectingCallbacks) {
           callback(exception);
+          print("DEBUG: finished _reconnectingCallback $callback");
         }
       } catch (e) {
         _logger(LogLevel.error,
@@ -485,6 +499,8 @@ class HubConnection {
     int elapsedMilliseconds,
     Exception retryReason,
   }) {
+    print("DEBUG: _getNextRetryDelay started!");
+    print("DEBUG: elapsedMilliseconds: $elapsedMilliseconds, previousRetryCount: $previousRetryCount, retryReason: $retryReason");
     try {
       return _reconnectPolicy.nextRetryDelayInMilliseconds(
         RetryContext(
@@ -493,9 +509,13 @@ class HubConnection {
           retryReason: retryReason,
         ),
       );
-    } catch (e) {
+    } catch (e, s) {
+      print("DEBUG: _getNextRetryDelay catch handler: $e $s");
+
       _logger(LogLevel.error,
           'RetryPolicy.nextRetryDelayInMilliseconds($previousRetryCount, $elapsedMilliseconds) threw error \'${e.toString()}\'.');
+
+      print('DEBUG: _getNextRetryDelay returning null');
       return null;
     }
   }
@@ -776,16 +796,22 @@ class HubConnection {
     _logger(LogLevel.debug,
         'HubConnection.connectionClosed(${exception.toString()}) called while in state ${_connectionState.toString()}.');
 
+    print("DEBUG: hub_connection.dart: _connectionClosed");
+
     // Triggering this.handshakeRejecter is insufficient because it could already be resolved without the continuation having run yet.
     _stopDuringStartError ??= (exception != null)
         ? exception
         : Exception(
             'The underlying connection was closed before the hub handshake could complete.');
 
+    print("DEBUG: _stopDuringStartError created: $_stopDuringStartError");
+
     // If the handshake is in progress, start will be waiting for the handshake future, so we complete it.
     // If it has already completed, this should just noop.
     if (!_handshakeCompleter.isCompleted) {
       _handshakeCompleter.complete();
+
+      print('DEBUG: !_handshakeCompleter.isCompleted ran');
     }
 
     _cancelCallbacksWithError(
@@ -795,17 +821,27 @@ class HubConnection {
               'Invocation canceled due to the underlying connection being closed.'),
     );
 
+    print('DEBUG: _cancelCallbacksWithError ran');
+
     _cleanupTimeout();
+    print('DEBUG: _cleanupTimeout ran');
+
     _cleanupPingTimer();
+    print('DEBUG: _cleanupPingTimer ran');
 
     if (_connectionState == HubConnectionState.disconnecting) {
+      print('a');
       _completeClose(exception: exception);
     } else if ((_connectionState == HubConnectionState.connected) &&
         _reconnectPolicy != null) {
+      print('b');
       _reconnect(exception: exception);
     } else if (_connectionState == HubConnectionState.connected) {
+      print('c');
       _completeClose(exception: exception);
     }
+
+    print("DEBUG: abc finished");
 
     // If none of the above if conditions were true were called the HubConnection must be in either:
     // 1. The Connecting state in which case the handshakeResolver will complete it and stopDuringStartError will fail it.
