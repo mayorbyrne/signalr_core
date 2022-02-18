@@ -835,13 +835,14 @@ class HubConnection {
     } else if ((_connectionState == HubConnectionState.connected) &&
         _reconnectPolicy != null) {
       print('b');
+      print('DEBUG: we should be calling _reconnect now!');
       _reconnect(exception: exception);
     } else if (_connectionState == HubConnectionState.connected) {
       print('c');
       _completeClose(exception: exception);
     }
 
-    print("DEBUG: abc finished");
+    print("DEBUG: abc check complete");
 
     // If none of the above if conditions were true were called the HubConnection must be in either:
     // 1. The Connecting state in which case the handshakeResolver will complete it and stopDuringStartError will fail it.
