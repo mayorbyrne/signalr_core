@@ -148,18 +148,17 @@ class HubConnection {
     }
 
     _connectionState = HubConnectionState.connecting;
-    _logger!(LogLevel.debug, 'Starting HubConnection.');
+    print( 'Starting HubConnection.');
 
     try {
       await _startInternal();
 
       _connectionState = HubConnectionState.connected;
       _connectionStarted = true;
-      _logger!(LogLevel.debug, 'HubConnection connected successfully.');
+      print( 'HubConnection connected successfully.');
     } catch (e) {
       _connectionState = HubConnectionState.disconnected;
-      _logger!(LogLevel.debug,
-          'HubConnection failed to start successfully because of error \'{$e.toString()}\'.');
+      print('HubConnection failed to start successfully because of error \'{$e.toString()}\'.');
       return Future.error(e);
     }
   }
@@ -185,13 +184,12 @@ class HubConnection {
         version: _protocol.version,
       );
 
-      _logger!(LogLevel.debug, 'Sending handshake request.');
+      print( 'Sending handshake request.');
 
       await _sendMessage(
           _handshakeProtocol.writeHandshakeRequest(handshakeRequest));
 
-      _logger!(
-          LogLevel.information, 'Using HubProtocol \'${_protocol.name}\'.');
+      print('Using HubProtocol \'${_protocol.name}\'.');
 
       // defensively cleanup timeout in case we receive a message from the server before we finish start
       _cleanupTimeout();
@@ -210,8 +208,7 @@ class HubConnection {
         throw _stopDuringStartError!;
       }
     } catch (e) {
-      _logger!(LogLevel.debug,
-          'Hub handshake failed with error \'${e.toString()}\' during start(). Stopping HubConnection.');
+      print('Hub handshake failed with error \'${e.toString()}\' during start(). Stopping HubConnection.');
 
       _cleanupTimeout();
       _cleanupPingTimer();
@@ -241,27 +238,24 @@ class HubConnection {
 
   Future<void>? _stopInternal({Exception? exception}) async {
     if (_connectionState == HubConnectionState.disconnected) {
-      _logger!(LogLevel.debug,
-          'Call to HubConnection.stop(${exception.toString()}) ignored because it is already in the disconnected state.');
+      print('Call to HubConnection.stop(${exception.toString()}) ignored because it is already in the disconnected state.');
       return Future.value(null);
     }
 
     if (_connectionState == HubConnectionState.disconnecting) {
-      _logger!(LogLevel.debug,
-          'Call to HttpConnection.stop(${exception.toString()}) ignored because the connection is already in the disconnecting state.');
+      print('Call to HttpConnection.stop(${exception.toString()}) ignored because the connection is already in the disconnecting state.');
       return _stopFuture;
     }
 
     _connectionState = HubConnectionState.disconnecting;
 
-    _logger!(LogLevel.debug, 'Stopping HubConnection');
+    print( 'Stopping HubConnection');
 
     if (_reconnectDelayHandle != null) {
       // We're in a reconnect delay which means the underlying connection is currently already stopped.
       // Just clear the handle to stop the reconnect loop (which no one is waiting on thankfully) and
       // fire the onclose callbacks.
-      _logger!(LogLevel.debug,
-          'Connection stopped during reconnect delay. Done reconnecting.');
+      print('Connection stopped during reconnect delay. Done reconnecting.');
 
       _clearTimeout(_reconnectDelayHandle);
       _reconnectDelayHandle = null;
@@ -373,8 +367,7 @@ class HubConnection {
         print('hello, caught');
         print(e);
         print(s);
-        _logger!(LogLevel.error,
-            'An onclose callback called with error \'${exception.toString()}\' threw error \'${e.toString()}\'.');
+        print('An onclose callback called with error \'${exception.toString()}\' threw error \'${e.toString()}\'.');
       }
     }
 
@@ -382,6 +375,8 @@ class HubConnection {
   }
 
   Future<void> _reconnect({Exception? exception}) async {
+    print('_reconnect started');
+
     final reconnectStartTime = Stopwatch()..start();
     //final reconnectStartTime = DateTime.now();
     var previousReconnectAttempts = 0;
@@ -395,8 +390,7 @@ class HubConnection {
         retryReason: retryError);
 
     if (nextRetryDelay == null) {
-      _logger!(LogLevel.debug,
-          'Connection not reconnecting because the RetryPolicy returned null on the first reconnect attempt.');
+      print('Connection not reconnecting because the RetryPolicy returned null on the first reconnect attempt.');
       _completeClose(exception: exception);
       return;
     }
@@ -404,10 +398,9 @@ class HubConnection {
     _connectionState = HubConnectionState.reconnecting;
 
     if (exception != null) {
-      _logger!(LogLevel.information,
-          'Connection reconnecting because of error \'${exception.toString()}\'.');
+      print('Connection reconnecting because of error \'${exception.toString()}\'.');
     } else {
-      _logger!(LogLevel.information, 'Connection reconnecting.');
+      print('Connection reconnecting.');
     }
 
     try {
@@ -415,20 +408,17 @@ class HubConnection {
         callback(exception);
       }
     } catch (e) {
-      _logger!(LogLevel.error,
-          'An onreconnecting callback called with error \'${exception.toString()}\' threw error \'${e.toString()}\'.');
+      print('An onreconnecting callback called with error \'${exception.toString()}\' threw error \'${e.toString()}\'.');
     }
 
     // Exit early if an onreconnecting callback called connection.stop().
     if (_connectionState != HubConnectionState.reconnecting) {
-      _logger!(LogLevel.debug,
-          'Connection left the reconnecting state in onreconnecting callback. Done reconnecting.');
+      print('Connection left the reconnecting state in onreconnecting callback. Done reconnecting.');
       return;
     }
 
     while (nextRetryDelay != null) {
-      _logger!(LogLevel.information,
-          'Reconnect attempt number $previousReconnectAttempts will start in $nextRetryDelay ms.');
+      print('Reconnect attempt number $previousReconnectAttempts will start in $nextRetryDelay ms.');
 
       await Future(() {
         var completer = Completer();
@@ -440,8 +430,7 @@ class HubConnection {
 
       if (_connectionState == null ||
           _connectionState != HubConnectionState.reconnecting) {
-        _logger!(LogLevel.debug,
-            'Connection left the reconnecting state during reconnect delay. Done reconnecting.');
+        print(  'Connection left the reconnecting state during reconnect delay. Done reconnecting.');
         return;
       }
 
@@ -449,26 +438,22 @@ class HubConnection {
         await _startInternal();
 
         _connectionState = HubConnectionState.connected;
-        _logger!(
-            LogLevel.information, 'HubConnection reconnected successfully.');
+        print('HubConnection reconnected successfully.');
 
         try {
           for (var callback in _reconnectedCallbacks) {
             callback(_connection!.connectionId);
           }
         } catch (e) {
-          _logger!(LogLevel.error,
-              'An onreconnected callback called with connectionId \'${_connection!.connectionId}; threw error \'${e.toString()}\'.');
+          print(  'An onreconnected callback called with connectionId \'${_connection!.connectionId}; threw error \'${e.toString()}\'.');
         }
 
         return;
       } catch (e) {
-        _logger!(LogLevel.information,
-            'Reconnect attempt failed because of error \'${e.toString()}\'.');
+        print('Reconnect attempt failed because of error \'${e.toString()}\'.');
 
         if (_connectionState != HubConnectionState.reconnecting) {
-          _logger!(LogLevel.debug,
-              'Connection left the reconnecting state during reconnect attempt. Done reconnecting.');
+          print(    'Connection left the reconnecting state during reconnect attempt. Done reconnecting.');
           return;
         }
 
@@ -481,8 +466,7 @@ class HubConnection {
       }
     }
 
-    _logger!(LogLevel.information,
-        'Reconnect retries have been exhausted after ${reconnectStartTime.elapsedMilliseconds} ms and $previousReconnectAttempts failed attempts. Connection disconnecting.');
+    print('Reconnect retries have been exhausted after ${reconnectStartTime.elapsedMilliseconds} ms and $previousReconnectAttempts failed attempts. Connection disconnecting.');
 
     _completeClose();
   }
@@ -501,8 +485,7 @@ class HubConnection {
         ),
       );
     } catch (e) {
-      _logger!(LogLevel.error,
-          'RetryPolicy.nextRetryDelayInMilliseconds($previousRetryCount, $elapsedMilliseconds) threw error \'${e.toString()}\'.');
+      print('RetryPolicy.nextRetryDelayInMilliseconds($previousRetryCount, $elapsedMilliseconds) threw error \'${e.toString()}\'.');
       return null;
     }
   }
@@ -725,8 +708,7 @@ class HubConnection {
             break;
           case MessageType.close:
             final closeMessage = message as CloseMessage;
-            _logger!(
-                LogLevel.information, 'Close message received from server.');
+            print('Close message received from server.');
 
             final exception = (closeMessage.error != null)
                 ? Exception(
@@ -744,8 +726,7 @@ class HubConnection {
             }
             break;
           default:
-            _logger!(
-                LogLevel.warning, 'Invalid message type: ${message.type}.');
+            print('Invalid message type: ${message.type}.');
             break;
         }
       }
@@ -764,7 +745,7 @@ class HubConnection {
       responseMessage = response.item2;
     } catch (e) {
       final message = 'Error parsing handshake response: ' + e.toString();
-      _logger!(LogLevel.error, message);
+      print(message);
 
       final exception = Exception(message);
       _handshakeCompleter.completeError(exception);
@@ -774,13 +755,13 @@ class HubConnection {
     if (responseMessage.error != null) {
       final message =
           'Server returned handshake error: ' + responseMessage.error!;
-      _logger!(LogLevel.error, message);
+      print(message);
 
       final exception = Exception(message);
       _handshakeCompleter.completeError(exception);
       throw exception;
     } else {
-      _logger!(LogLevel.debug, 'Server handshake complete.');
+      print( 'Server handshake complete.');
     }
 
     _handshakeCompleter.complete();
@@ -788,7 +769,7 @@ class HubConnection {
   }
 
   void _connectionClosed({Exception? exception}) {
-    _logger!(LogLevel.debug,
+    print(
         'HubConnection.connectionClosed(${exception.toString()}) called while in state ${_connectionState.toString()}.');
 
     // Triggering this.handshakeRejecter is insufficient because it could already be resolved without the continuation having run yet.
@@ -1014,22 +995,20 @@ class HubConnection {
           method(invocationMessage.arguments);
         }
       } catch (e) {
-        _logger!(LogLevel.error,
-            'A callback for the method ${invocationMessage.target!.toLowerCase()} threw error \'${e.toString()}\'.');
+        print('A callback for the method ${invocationMessage.target!.toLowerCase()} threw error \'${e.toString()}\'.');
       }
 
       if (invocationMessage.invocationId != null) {
         // This is not supported in v1. So we return an error to avoid blocking the server waiting for the response.
         final message =
             'Server requested a response, which is not supported in this version of the client.';
-        _logger!(LogLevel.error, message);
+        print(message);
 
         // We don't want to wait on the stop itself.
         _stopFuture = _stopInternal(exception: Exception(message));
       }
     } else {
-      _logger!(LogLevel.warning,
-          'No client method with the name \'${invocationMessage.target}\' found.');
+      print('No client method with the name \'${invocationMessage.target}\' found.');
     }
   }
 }
