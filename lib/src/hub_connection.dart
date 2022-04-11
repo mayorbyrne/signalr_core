@@ -359,6 +359,8 @@ class HubConnection {
   }
 
   void _completeClose({Exception? exception}) {
+    print('complete close! _connectionStarted: $_connectionStarted');
+
     if (_connectionStarted) {
       _connectionState = HubConnectionState.disconnected;
       _connectionStarted = false;
@@ -367,11 +369,16 @@ class HubConnection {
         for (var callback in _closedCallbacks) {
           callback(exception);
         }
-      } catch (e) {
+      } catch (e, s) {
+        print('hello, caught');
+        print(e);
+        print(s);
         _logger!(LogLevel.error,
             'An onclose callback called with error \'${exception.toString()}\' threw error \'${e.toString()}\'.');
       }
     }
+
+    print("completeClose completed: _connectionState: $_connectionState");
   }
 
   Future<void> _reconnect({Exception? exception}) async {
@@ -804,6 +811,8 @@ class HubConnection {
     );
 
     _cleanupTimeout();
+    print('DEBUG: _cleanupTimeout ran');
+
     _cleanupPingTimer();
 
     if (_connectionState == HubConnectionState.disconnecting) {
