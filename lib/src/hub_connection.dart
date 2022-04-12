@@ -418,20 +418,13 @@ class HubConnection {
 
     try
     {
-
-    if (exception != null) {
-      print('Connection reconnecting because of error');
-    } else {
-      print('Connection reconnecting.');
-    }
-
-    try {
-      for (var callback in _reconnectingCallbacks) {
-        callback(exception);
+      try {
+        for (var callback in _reconnectingCallbacks) {
+          callback(exception);
+        }
+      } catch (e) {
+        print('An onreconnecting callback threw error $e');
       }
-    } catch (e) {
-      print('An onreconnecting callback threw error $e');
-    }
 
     print('_reconnect: d');
 
@@ -829,13 +822,13 @@ class HubConnection {
 
     if (_connectionState == HubConnectionState.disconnecting) {
       print('part a');
-      _completeClose(exception: exception);
+      _completeClose();
     } else if ((_connectionState == HubConnectionState.connected) && _reconnectPolicy != null) {
       print('part b');
       try
       {
         print('trying reconnect');
-        _reconnect(exception: exception);
+        _reconnect();
       }
       catch(e, s)
       {
@@ -843,7 +836,7 @@ class HubConnection {
       }
     } else if (_connectionState == HubConnectionState.connected) {
       print('part c');
-      _completeClose(exception: exception);
+      _completeClose();
     }
 
     // If none of the above if conditions were true were called the HubConnection must be in either:
