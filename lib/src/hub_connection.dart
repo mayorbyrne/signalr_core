@@ -371,7 +371,7 @@ class HubConnection {
       }
     }
 
-    print("completeClose completed: _connectionState: $_connectionState");
+    print('completeClose completed: _connectionState: $_connectionState');
   }
 
   Future<void> _reconnect({Exception? exception}) async {
@@ -380,12 +380,13 @@ class HubConnection {
     final reconnectStartTime = Stopwatch()..start();
     //final reconnectStartTime = DateTime.now();
 
+    var previousReconnectAttempts = 0;
+
     print('_reconnect: b');
 
-    var previousReconnectAttempts = 0;
-    var retryError = (exception != null)
-        ? exception
-        : Exception('Attempting to reconnect due to a unknown error.');
+    var retryError = (exception != null) ? exception : Exception('Attempting to reconnect due to a unknown error.');
+
+    print('retryError : $retryError');
 
     var nextRetryDelay = _getNextRetryDelay(
         previousRetryCount: previousReconnectAttempts++,
@@ -415,7 +416,7 @@ class HubConnection {
     } catch (e) {
       print('An onreconnecting callback called with error \'${exception.toString()}\' threw error \'${e.toString()}\'.');
     }
-    
+
     print('_reconnect: d');
 
     // Exit early if an onreconnecting callback called connection.stop().
@@ -483,6 +484,12 @@ class HubConnection {
     int? elapsedMilliseconds,
     Exception? retryReason,
   }) {
+    print('_getNextRetryDelay');
+    print('previousRetryCount : ${previousRetryCount}');
+    print('elapsedMilliseconds : ${elapsedMilliseconds}');
+    print('retryReason : ${retryReason}');
+    print('_reconnectPolicy : ${_reconnectPolicy}');
+
     try {
       return _reconnectPolicy!.nextRetryDelayInMilliseconds(
         RetryContext(
@@ -491,7 +498,8 @@ class HubConnection {
           retryReason: retryReason,
         ),
       );
-    } catch (e) {
+    } catch (e, s) {
+      print('caught in _getNextRetryDelay $e, $s');
       print('RetryPolicy.nextRetryDelayInMilliseconds($previousRetryCount, $elapsedMilliseconds) threw error \'${e.toString()}\'.');
       return null;
     }
