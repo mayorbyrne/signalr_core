@@ -382,7 +382,7 @@ class HubConnection {
 
     var previousReconnectAttempts = 0;
 
-    print('_reconnect: b');
+    print('_reconnect: b: $exception');
 
     var retryError = (exception != null) ? exception : Exception('Attempting to reconnect due to a unknown error.');
 
@@ -796,15 +796,11 @@ class HubConnection {
     // If the handshake is in progress, start will be waiting for the handshake future, so we complete it.
     // If it has already completed, this should just noop.
     if (!_handshakeCompleter.isCompleted) {
+      print('handshake completer');
       _handshakeCompleter.complete();
     }
 
-    _cancelCallbacksWithError(
-      (exception != null)
-          ? exception
-          : Exception(
-              'Invocation canceled due to the underlying connection being closed.'),
-    );
+    _cancelCallbacksWithError((exception != null) ? exception : Exception('Invocation canceled due to the underlying connection being closed.'));
 
     _cleanupTimeout();
     print('DEBUG: _cleanupTimeout ran');
@@ -812,11 +808,13 @@ class HubConnection {
     _cleanupPingTimer();
 
     if (_connectionState == HubConnectionState.disconnecting) {
+      print('part a');
       _completeClose(exception: exception);
-    } else if ((_connectionState == HubConnectionState.connected) &&
-        _reconnectPolicy != null) {
+    } else if ((_connectionState == HubConnectionState.connected) && _reconnectPolicy != null) {
+      print('part b');
       _reconnect(exception: exception);
     } else if (_connectionState == HubConnectionState.connected) {
+      print('part c');
       _completeClose(exception: exception);
     }
 
@@ -828,6 +826,8 @@ class HubConnection {
   }
 
   void _cancelCallbacksWithError(Exception exception) {
+    print("_cancelCallbacksWithError");
+
     final Map<String?, void Function(HubMessage?, Exception)> callbacks =
         _callbacks;
     _callbacks = {};
