@@ -420,7 +420,7 @@ class HubConnection {
     {
 
     if (exception != null) {
-      print('Connection reconnecting because of error \'${exception.toString()}\'.');
+      print('Connection reconnecting because of error');
     } else {
       print('Connection reconnecting.');
     }
@@ -430,7 +430,7 @@ class HubConnection {
         callback(exception);
       }
     } catch (e) {
-      print('An onreconnecting callback called with error \'${exception.toString()}\' threw error \'${e.toString()}\'.');
+      print('An onreconnecting callback threw error $e');
     }
 
     print('_reconnect: d');
