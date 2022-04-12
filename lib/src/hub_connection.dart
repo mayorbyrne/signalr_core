@@ -823,7 +823,15 @@ class HubConnection {
       _completeClose(exception: exception);
     } else if ((_connectionState == HubConnectionState.connected) && _reconnectPolicy != null) {
       print('part b');
-      _reconnect(exception: exception);
+      try
+      {
+        print('trying reconnect');
+        _reconnect(exception: exception);
+      }
+      catch(e, s)
+      {
+        print('caugh reconnect: $e, $s');
+      }
     } else if (_connectionState == HubConnectionState.connected) {
       print('part c');
       _completeClose(exception: exception);
