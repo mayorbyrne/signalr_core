@@ -416,6 +416,9 @@ class HubConnection {
 
     print('_reconnect: c');
 
+    try
+    {
+
     if (exception != null) {
       print('Connection reconnecting because of error \'${exception.toString()}\'.');
     } else {
@@ -489,6 +492,11 @@ class HubConnection {
     print('Reconnect retries have been exhausted after ${reconnectStartTime!.elapsedMilliseconds} ms and $previousReconnectAttempts failed attempts. Connection disconnecting.');
 
     _completeClose();
+    }
+    catch(e, s)
+    {
+      print('ultimate try/catch: $e, $s');
+    }
   }
 
   int? _getNextRetryDelay({
