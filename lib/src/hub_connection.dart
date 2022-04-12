@@ -376,15 +376,26 @@ class HubConnection {
 
   Future<void> _reconnect({Exception? exception}) async {
     print('_reconnect started: a');
+    var previousReconnectAttempts = 0;
+    Stopwatch? reconnectStartTime;
+    Exception? retryError;
 
-    final reconnectStartTime = Stopwatch()..start();
+    try
+    {
+      reconnectStartTime = Stopwatch()..start();
+    }
+    catch(e, s)
+    {
+      print(e);
+      print(s);
+    }
+
+    print('is this even working');
+    print('reconnectStartTime');
+    print(reconnectStartTime);
     // final reconnectStartTime = DateTime.now();
 
-    var previousReconnectAttempts = 0;
-
-    print('_reconnect: b: ${exception ?? "null"}');
-
-    var retryError = (exception != null) ? exception : Exception('Attempting to reconnect due to a unknown error.');
+    retryError = (exception != null) ? exception : Exception('Attempting to reconnect due to a unknown error.');
 
     print('retryError : $retryError');
 
@@ -468,13 +479,13 @@ class HubConnection {
         retryError = (e is Exception) ? e : Exception(e.toString());
         nextRetryDelay = _getNextRetryDelay(
           previousRetryCount: previousReconnectAttempts++,
-          elapsedMilliseconds: reconnectStartTime.elapsedMilliseconds,
+          elapsedMilliseconds: reconnectStartTime!.elapsedMilliseconds,
           retryReason: retryError,
         );
       }
     }
 
-    print('Reconnect retries have been exhausted after ${reconnectStartTime.elapsedMilliseconds} ms and $previousReconnectAttempts failed attempts. Connection disconnecting.');
+    print('Reconnect retries have been exhausted after ${reconnectStartTime!.elapsedMilliseconds} ms and $previousReconnectAttempts failed attempts. Connection disconnecting.');
 
     _completeClose();
   }
