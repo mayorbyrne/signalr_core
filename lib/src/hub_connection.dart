@@ -378,11 +378,11 @@ class HubConnection {
     print('_reconnect started: a');
 
     final reconnectStartTime = Stopwatch()..start();
-    //final reconnectStartTime = DateTime.now();
+    // final reconnectStartTime = DateTime.now();
 
     var previousReconnectAttempts = 0;
 
-    print('_reconnect: b: $exception');
+    print('_reconnect: b: ${exception ?? "null"}');
 
     var retryError = (exception != null) ? exception : Exception('Attempting to reconnect due to a unknown error.');
 
