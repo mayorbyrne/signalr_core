@@ -378,7 +378,7 @@ class HubConnection {
     print('_reconnect started: a');
     var previousReconnectAttempts = 0;
     Stopwatch? reconnectStartTime;
-    Exception? retryError;
+    // Exception? retryError;
 
     try
     {
@@ -395,14 +395,16 @@ class HubConnection {
     print(reconnectStartTime);
     // final reconnectStartTime = DateTime.now();
 
-    retryError = (exception != null) ? exception : Exception('Attempting to reconnect due to a unknown error.');
+    // retryError = (exception != null) ? exception : Exception('Attempting to reconnect due to a unknown error.');
 
-    print('retryError : $retryError');
+    // print('retryError : $retryError');
 
     var nextRetryDelay = _getNextRetryDelay(
         previousRetryCount: previousReconnectAttempts++,
-        elapsedMilliseconds: 0,
-        retryReason: retryError);
+        elapsedMilliseconds: 0);
+        // retryReason: retryError);
+
+    print('c');
 
     if (nextRetryDelay == null) {
       print('Connection not reconnecting because the RetryPolicy returned null on the first reconnect attempt.');
@@ -476,12 +478,11 @@ class HubConnection {
           return;
         }
 
-        retryError = (e is Exception) ? e : Exception(e.toString());
+        // retryError = (e is Exception) ? e : Exception(e.toString());
         nextRetryDelay = _getNextRetryDelay(
           previousRetryCount: previousReconnectAttempts++,
-          elapsedMilliseconds: reconnectStartTime!.elapsedMilliseconds,
-          retryReason: retryError,
-        );
+          elapsedMilliseconds: reconnectStartTime!.elapsedMilliseconds);
+        // retryReason: retryError);
       }
     }
 
