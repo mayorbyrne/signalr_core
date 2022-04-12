@@ -378,9 +378,9 @@ class HubConnection {
     final reconnectStartTime = Stopwatch()..start();
     //final reconnectStartTime = DateTime.now();
     var previousReconnectAttempts = 0;
-    var retryError = (exception != null)
-        ? exception
-        : Exception('Attempting to reconnect due to a unknown error.');
+
+    exception = Exception('Unknown Error');
+    var retryError = Exception('Attempting to reconnect due to a unknown error.');
 
     var nextRetryDelay = _getNextRetryDelay(
         previousRetryCount: previousReconnectAttempts++,
@@ -396,12 +396,7 @@ class HubConnection {
 
     _connectionState = HubConnectionState.reconnecting;
 
-    if (exception != null) {
-      _logger!(LogLevel.information,
-          'Connection reconnecting because of error \'${exception.toString()}\'.');
-    } else {
-      _logger!(LogLevel.information, 'Connection reconnecting.');
-    }
+    _logger!(LogLevel.information, 'Connection reconnecting.');
 
     try {
       for (var callback in _reconnectingCallbacks) {
@@ -465,11 +460,10 @@ class HubConnection {
           return;
         }
 
-        retryError = (e is Exception) ? e : Exception(e.toString());
         nextRetryDelay = _getNextRetryDelay(
           previousRetryCount: previousReconnectAttempts++,
           elapsedMilliseconds: reconnectStartTime.elapsedMilliseconds,
-          retryReason: retryError,
+          retryReason: retryError
         );
       }
     }
