@@ -826,14 +826,22 @@ class HubConnection {
   }
 
   void _cancelCallbacksWithError(Exception exception) {
-    print("_cancelCallbacksWithError");
+    print('_cancelCallbacksWithError: $exception');
 
-    final Map<String?, void Function(HubMessage?, Exception)> callbacks =
-        _callbacks;
+    final Map<String?, void Function(HubMessage?, Exception)> callbacks = _callbacks;
     _callbacks = {};
 
+    print(callbacks);
+
     callbacks.forEach((key, value) {
-      value(null, exception);
+      try
+      {
+        value(null, exception);
+      }
+      catch(e, s)
+      {
+        print('tried a callback but it failed: $e, $s');
+      }
     });
   }
 
