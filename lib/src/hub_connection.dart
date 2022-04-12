@@ -375,10 +375,13 @@ class HubConnection {
   }
 
   Future<void> _reconnect({Exception? exception}) async {
-    print('_reconnect started');
+    print('_reconnect started: a');
 
     final reconnectStartTime = Stopwatch()..start();
     //final reconnectStartTime = DateTime.now();
+
+    print('_reconnect: b');
+
     var previousReconnectAttempts = 0;
     var retryError = (exception != null)
         ? exception
@@ -397,6 +400,8 @@ class HubConnection {
 
     _connectionState = HubConnectionState.reconnecting;
 
+    print('_reconnect: c');
+
     if (exception != null) {
       print('Connection reconnecting because of error \'${exception.toString()}\'.');
     } else {
@@ -410,6 +415,8 @@ class HubConnection {
     } catch (e) {
       print('An onreconnecting callback called with error \'${exception.toString()}\' threw error \'${e.toString()}\'.');
     }
+    
+    print('_reconnect: d');
 
     // Exit early if an onreconnecting callback called connection.stop().
     if (_connectionState != HubConnectionState.reconnecting) {
