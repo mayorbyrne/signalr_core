@@ -374,12 +374,12 @@ class HubConnection {
     }
   }
 
-  Future<void> _reconnect({Exception? exception}) async {
+  Future<void> _reconnect() async {
     final reconnectStartTime = Stopwatch()..start();
     //final reconnectStartTime = DateTime.now();
     var previousReconnectAttempts = 0;
 
-    exception = Exception('Unknown Error');
+    var exception = Exception('Unknown Error');
     var retryError = Exception('Attempting to reconnect due to a unknown error.');
 
     var nextRetryDelay = _getNextRetryDelay(
@@ -804,7 +804,7 @@ class HubConnection {
       _completeClose(exception: exception);
     } else if ((_connectionState == HubConnectionState.connected) &&
         _reconnectPolicy != null) {
-      _reconnect(exception: exception);
+      _reconnect();
     } else if (_connectionState == HubConnectionState.connected) {
       _completeClose(exception: exception);
     }
