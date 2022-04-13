@@ -72,7 +72,10 @@ class HubConnection {
     RetryPolicy? reconnectPolicy,
   })  : _cachedPingMessage = protocol.writeMessage(PingMessage()),
         _connection = connection,
-        _logger = logging,
+        _logger = ((level, message)
+        {
+          print(message);
+        }),
         _protocol = protocol,
         _reconnectPolicy = reconnectPolicy {
     serverTimeoutInMilliseconds = DEFAULT_TIMEOUT_IN_MS;
